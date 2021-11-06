@@ -1,73 +1,115 @@
+--Задание вариант 1
+
+CREATE TABLE academic_group
+(
+    group_id SERIAL NOT NULL,
+    number VARCHAR NOT NULL,
+    CONSTRAINT academic_group_pk PRIMARY KEY (group_id)
+);
+
 
 CREATE TABLE students
 (
     student_id SERIAL NOT NULL,
-    first_Name VARCHAR(40) NOT NULL,
-    last_name VARCHAR(40) NOT NULL,
-    registration_year timestamp,
-    CONSTRAINT students_pkey PRIMARY KEY (student_id)
+    first_name VARCHAR NOT NULL,
+    last_name VARCHAR NOT NULL,
+    registration_year TIMESTAMP,
+    group_id int,
+    CONSTRAINT students_pk PRIMARY KEY (student_id),
+    CONSTRAINT group_id_fk FOREIGN KEY (group_id)
+        REFERENCES academic_group(group_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 );
 
 CREATE TABLE teachers
 (
     teacher_id SERIAL NOT NULL,
-    Name varchar(30) NOT NULL,
-    Surname varchar(30) NOT NULL,
-    mail varchar(50),
-    CONSTRAINT Teachers_pkey PRIMARY KEY (teacher_id)
+    first_name VARCHAR NOT NULL,
+    last_name VARCHAR NOT NULL,
+    mail VARCHAR,
+    CONSTRAINT teachers_pk PRIMARY KEY (teacher_id)
 );
 
 CREATE TABLE courses
 (
-    Course_id SERIAL NOT NULL,
-    Topic varchar(40) NOT NULL,
-    CONSTRAINT Course_pk PRIMARY KEY (Course_id)
+    course_id SERIAL NOT NULL,
+    name VARCHAR NOT NULL,
+    topic VARCHAR NOT NULL,
+    CONSTRAINT course_pk PRIMARY KEY (course_id)
 );
 
-CREATE TABLE schedule
+
+CREATE TABLE lessons
 (
-    course_id int NOT NULL,
-    teacher_id int NOT NULL,
-    "time" timestamp with time zone NOT NULL,
-    lesson_id integer NOT NULL,
+    lesson_id SERIAL NOT NULL,
+    course_id INT NOT NULL,
+    teacher_id INT,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL,
     CONSTRAINT lesson_pk PRIMARY KEY (lesson_id),
     CONSTRAINT schedule_course_fk FOREIGN KEY (course_id)
-        REFERENCES courses (Course_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
+        REFERENCES courses (course_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
     CONSTRAINT schedule_teacher_fk FOREIGN KEY (teacher_id)
-        REFERENCES Teachers (teacher_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+        REFERENCES teachers (teacher_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS Homeworks
+CREATE TABLE attends_lessons
 (
-    homework_id int NOT NULL,
-    lesson_id int NOT NULL,
-    homework_details varchar(100),
-    CONSTRAINT homework_pk PRIMARY KEY (homework_id),
-    CONSTRAINT homework_lesson_fk FOREIGN KEY (lesson_id)
-        REFERENCES schedule (lesson_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID
+    lesson_id INT NOT NULL,
+    student_id INT NOT NULL,
+    CONSTRAINT attends_lessons_pk PRIMARY KEY (lesson_id,student_id),
+    CONSTRAINT atd_lsn_lsn_fk FOREIGN KEY (lesson_id)
+        REFERENCES lessons (lesson_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT atd_lsn_std_fk FOREIGN KEY (student_id)
+         REFERENCES students (student_id) MATCH SIMPLE
+         ON UPDATE CASCADE
+         ON DELETE CASCADE
+);
+
+
+CREATE TABLE homeworks
+(
+    homework_id SERIAL NOT NULL,
+    homework_details VARCHAR,
+    CONSTRAINT homework_pk PRIMARY KEY (homework_id)
+);
+
+CREATE TABLE lesson_homework
+(
+    lesson_id iNT NOT NULL,
+    homework_id INT,
+    CONSTRAINT lsn_hwk_pk PRIMARY KEY (lesson_id, homework_id),
+    CONSTRAINT lesson_id_fk FOREIGN KEY (lesson_id)
+        REFERENCES lessons(lesson_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT homework_id_fk FOREIGN KEY (homework_id)
+        REFERENCES homeworks (homework_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+
 );
 
 CREATE TABLE IF NOT EXISTS student_course_details
 (
-    student_id integer NOT NULL,
-    lesson_id integer NOT NULL,
-    grade integer,
-    attend boolean NOT NULL,
+    group_id INT NOT NULL,
+    lesson_id INT NOT NULL,
+    grade INT,
+    CONSTRAINT std_crs_dtl_pk PRIMARY KEY (group_id,lesson_id),
     CONSTRAINT std_crs_dtl_lesson_id FOREIGN KEY (lesson_id)
-        REFERENCES schedule (lesson_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID,
-    CONSTRAINT std_crs_dtl_std_id FOREIGN KEY (student_id)
-        REFERENCES Students (Student_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+        REFERENCES lessons (lesson_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT std_crs_dtl_grp_id FOREIGN KEY (group_id)
+        REFERENCES academic_group (group_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 );
 
